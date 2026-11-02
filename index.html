@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>VantaCraft ADHD Budget Planner</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F7F2E9">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-title" content="VC Budget">
+<style>
+:root{
+  --cream:#F7F2E9; --cream2:#EFE7D6; --ink:#2E2A26; --ink-soft:#5c554d;
+  --sage:#75855F; --sage-dark:#5d6b4b; --sage-soft:#e6ebdd;
+  --card:#FFFFFF; --line:#e4dccb; --danger:#b3554d; --gold:#c9a227;
+  --radius:16px; --shadow:0 2px 12px rgba(46,42,38,.08);
+  --serif:Georgia,'Times New Roman',serif; --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+[data-theme="dark"]{
+  --cream:#1e1c19; --cream2:#26231f; --ink:#f0e9da; --ink-soft:#b8ad9c;
+  --sage:#9aa87f; --sage-dark:#8a9a70; --sage-soft:#2c3325;
+  --card:#2a2723; --line:#3d3831; --shadow:0 2px 12px rgba(0,0,0,.35);
+}
+[data-theme="blush"]{
+  --cream:#FAF1EA; --cream2:#F3E4D8; --ink:#3a2e2a; --ink-soft:#8a736a;
+  --sage:#c08a7e; --sage-dark:#a96f63; --sage-soft:#f2ddd4;
+  --card:#FFFFFF; --line:#ead7c9; --shadow:0 2px 12px rgba(58,46,42,.08);
+}
+[data-theme="ocean"]{
+  --cream:#EEF4F6; --cream2:#DCE9EE; --ink:#22333b; --ink-soft:#5f7683;
+  --sage:#5b8a9c; --sage-dark:#477385; --sage-soft:#d7e7ee;
+  --card:#FFFFFF; --line:#cfdde4; --shadow:0 2px 12px rgba(34,51,59,.08);
+}
+[data-theme="lavender"]{
+  --cream:#F3EFF9; --cream2:#E4DCF1; --ink:#322b3f; --ink-soft:#6f6484;
+  --sage:#8a7bb8; --sage-dark:#72639f; --sage-soft:#e2d9f2;
+  --card:#FFFFFF; --line:#d8cdea; --shadow:0 2px 12px rgba(50,43,63,.08);
+}
+[data-theme="charcoal"]{
+  --cream:#1f1f1f; --cream2:#2a2a2a; --ink:#ececec; --ink-soft:#a8a8a8;
+  --sage:#9aa87f; --sage-dark:#8a9a70; --sage-soft:#2e352a;
+  --card:#2b2b2b; --line:#3f3f3f; --shadow:0 2px 12px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom));}
+#app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--cream);}
+header.topbar{position:sticky;top:0;z-index:20;background:var(--cream);border-bottom:1px solid var(--line);
+  padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;}
+.brand{font-family:var(--serif);font-weight:bold;font-size:19px;letter-spacing:.3px;}
+.brand small{display:block;font-family:var(--sans);font-weight:normal;font-size:10px;letter-spacing:3px;color:var(--sage);text-transform:uppercase;}
+.iconbtn{background:var(--card);border:1px solid var(--line);border-radius:12px;width:40px;height:40px;
+  font-size:18px;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;}
+.screen{display:none;padding:16px 16px 24px;animation:fade .25s ease;}
+.screen.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+h1.ptitle{font-family:var(--serif);font-size:26px;margin:4px 0 2px;}
+.psub{color:var(--ink-soft);font-size:14px;margin:0 0 14px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:16px;margin-bottom:14px;}
+.card h3{font-family:var(--serif);margin:0 0 10px;font-size:18px;}
+.hero{background:linear-gradient(135deg,var(--sage),var(--sage-dark));color:#fff;border:none;text-align:center;padding:26px 18px;}
+.hero .lbl{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;opacity:.85;}
+.hero .big{font-family:var(--serif);font-size:46px;margin:6px 0 2px;font-weight:bold;}
+.hero .daily{font-size:15px;opacity:.92;margin-top:6px;}
+.hero .calc{margin-top:10px;font-size:12.5px;opacity:.8;text-decoration:underline;cursor:pointer;background:none;border:none;color:#fff;}
+.row{display:flex;gap:10px;}
+.row>*{flex:1;}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;
+  background:var(--sage);color:#fff;margin-top:8px;}
+.btn:active{transform:scale(.98);}
+.btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);}
+.btn.danger{background:var(--danger);}
+.btn.small{padding:9px;font-size:14px;margin-top:0;}
+label.f{display:block;font-size:13px;color:var(--ink-soft);margin:12px 0 4px;font-weight:600;}
+input,select,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:16px;
+  background:var(--cream);color:var(--ink);font-family:var(--sans);}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--sage);border-color:var(--sage);}
+.listitem{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);}
+.listitem:last-child{border-bottom:none;}
+.listitem .grow{flex:1;}
+.listitem .t{font-weight:600;}
+.listitem .s{font-size:13px;color:var(--ink-soft);}
+.amt{font-weight:700;font-size:16px;}
+.amt.neg{color:var(--danger);}
+.pill{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:var(--sage-soft);color:var(--sage-dark);}
+[data-theme="dark"] .pill{color:var(--sage);}
+.pill.warn{background:#f5e3c8;color:#8a5a17;}
+.pill.bad{background:#f3d4d1;color:#8a2f28;}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--sage);flex:none;}
+nav.bottomnav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--card);border-top:1px solid var(--line);
+  padding:8px 4px calc(8px + env(safe-area-inset-bottom));}
+nav.bottomnav .wrap{max-width:520px;margin:0 auto;display:flex;}
+.navbtn{flex:1;background:none;border:none;cursor:pointer;color:var(--ink-soft);font-size:11px;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;}
+.navbtn .ic{font-size:21px;}
+.navbtn.active{color:var(--sage-dark);}
+[data-theme="dark"] .navbtn.active{color:var(--sage);}
+/* ---------- sidebar (desktop) ---------- */
+.sidebar{display:none;}
+.sidebrand{display:flex;align-items:center;gap:10px;padding:6px 10px 20px;font-size:17px;}
+.sidebtn{flex:none!important;flex-direction:row!important;gap:12px!important;align-items:center;
+  padding:12px 14px!important;border-radius:14px;font-size:14px!important;margin-bottom:4px;width:100%;text-align:left;}
+.sidebtn .ic{font-size:20px!important;}
+.sidebtn.active{background:var(--sage-soft);color:var(--ink)!important;}
+.sidebtn2{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;margin-top:6px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;cursor:pointer;
+  color:var(--ink);font-size:14px;font-weight:600;box-shadow:var(--shadow);}
+/* ---------- tablet ---------- */
+@media(min-width:641px) and (max-width:1024px){
+  .wrap{max-width:680px;}
+  .hero .big{font-size:52px;}
+}
+/* ---------- desktop ---------- */
+@media(min-width:1025px){
+  #app{display:grid;grid-template-columns:250px minmax(0,1fr);align-items:start;}
+  .sidebar{display:flex;flex-direction:column;position:sticky;top:0;height:100vh;height:100dvh;
+    padding:26px 16px;background:var(--cream2);border-right:1px solid var(--line);}
+  .topbar{display:none;}
+  .wrap{grid-column:2;max-width:900px;width:100%;margin:0 auto;padding:36px 40px 70px;}
+  nav.bottomnav{display:none;}
+  #screen-today.active{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;align-items:start;}
+  #screen-today>.hero{grid-column:1/-1;}
+  #screen-today>.backlink{display:none;}
+  .hero .big{font-size:56px;}
+}
+/* ---------- cross-browser polish ---------- */
+html{-webkit-tap-highlight-color:transparent;}
+body{min-height:100vh;min-height:100dvh;}
+input,select,textarea{font-size:16px;} /* stops iOS Safari auto-zoom on focus */
+input[type="date"]{min-height:44px;}
+button{-webkit-appearance:none;}
+.quickgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0;}
+.quickgrid button{padding:12px 4px;border-radius:12px;border:1px solid var(--line);background:var(--cream);
+  font-size:15px;font-weight:700;color:var(--ink);cursor:pointer;}
+.menugrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.menucard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:18px 12px;text-align:center;cursor:pointer;}
+.menucard .ic{font-size:28px;display:block;margin-bottom:8px;}
+.menucard .t{font-weight:700;font-size:14px;}
+.progress{height:10px;background:var(--cream2);border-radius:6px;overflow:hidden;margin-top:8px;}
+.progress>div{height:100%;background:var(--sage);border-radius:6px;transition:width .4s;}
+.kv{display:flex;justify-content:space-between;padding:7px 0;font-size:14.5px;border-bottom:1px dashed var(--line);}
+.kv:last-child{border-bottom:none;}
+.kv b{font-weight:700;}
+.onb{min-height:80vh;display:flex;flex-direction:column;justify-content:center;padding:24px 20px;text-align:center;}
+.onb h1{font-family:var(--serif);font-size:32px;margin:8px 0;}
+.onb p{color:var(--ink-soft);}
+.steps{display:flex;gap:6px;justify-content:center;margin:18px 0;}
+.steps span{width:8px;height:8px;border-radius:50%;background:var(--line);}
+.steps span.on{background:var(--sage);}
+.hidden{display:none!important;}
+.center{text-align:center;}
+.mt{margin-top:14px;} .mb{margin-bottom:14px;}
+.small{font-size:13px;color:var(--ink-soft);}
+.calcbox{background:var(--cream2);border-radius:12px;padding:12px;font-size:13.5px;margin-top:10px;text-align:left;}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:13px;}
+.calgrid .dow{font-weight:700;color:var(--ink-soft);font-size:11px;padding:4px 0;}
+.calgrid .day{padding:8px 2px;border-radius:10px;min-height:44px;background:var(--card);border:1px solid var(--line);font-size:12px;}
+.calgrid .day.dim{opacity:.35;}
+.calgrid .day .e{font-size:10px;color:var(--sage-dark);font-weight:700;}
+.tabs{display:flex;gap:8px;margin-bottom:12px;}
+.tabs button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);font-weight:700;cursor:pointer;}
+.tabs button.on{background:var(--sage);color:#fff;border-color:var(--sage);}
+textarea{min-height:90px;resize:vertical;}
+.backlink{background:none;border:none;color:var(--sage-dark);font-size:15px;font-weight:700;cursor:pointer;padding:4px 0;margin-bottom:8px;}
+[data-theme="dark"] .backlink{color:var(--sage);}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--cream);
+  padding:12px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:99;display:none;box-shadow:var(--shadow);}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebrand"><span style="font-size:26px">🌿</span><div><b>VantaCraft</b><div class="small" style="margin:0">Budget Planner</div></div></div>
+    <button class="navbtn sidebtn active" data-nav="today"><span class="ic">🏠</span><span data-i18n="nav_today">Today</span></button>
+    <button class="navbtn sidebtn" data-nav="log"><span class="ic">⚡</span><span data-i18n="nav_log">Log</span></button>
+    <button class="navbtn sidebtn" data-nav="bills"><span class="ic">🧾</span><span data-i18n="nav_bills">Bills</span></button>
+    <button class="navbtn sidebtn" data-nav="goals"><span class="ic">🎯</span><span data-i18n="nav_goals">Goals</span></button>
+    <button class="navbtn sidebtn" data-nav="more"><span class="ic">⋯</span><span data-i18n="nav_more">More</span></button>
+    <div style="flex:1"></div>
+    <button class="sidebtn2" id="themeBtn2">🎨 <span>Theme</span></button>
+    <button class="sidebtn2" id="focusBtn2">🧠 <span>Focus</span></button>
+    <p class="small center" style="margin:14px 0 0">📱 iPhone · iPad · Mac<br>🤖 Android · 🪟 Windows</p>
+  </aside>
+  <header class="topbar">
+    <div class="brand">VantaCraft<small>Budget Planner</small></div>
+    <div class="row" style="flex:none;gap:8px;">
+      <button class="iconbtn" id="themeBtn" title="Theme">◐</button>
+      <button class="iconbtn" id="focusBtn" title="Focus mode">◉</button>
+    </div>
+  </header>
+
+  <!-- ONBOARDING -->
+  <div id="screen-onboarding" class="screen">
+    <div class="onb" id="onbBody"></div>
+  </div>
+
+  <!-- TODAY -->
+  <section id="screen-today" class="screen">
+    <h1 class="ptitle" id="todayGreet">Today</h1>
+    <p class="psub" id="todayDate"></p>
+    <div class="card hero">
+      <div class="lbl" data-i18n="t_safe">Safe to spend</div>
+      <div class="big" id="safeBig">–</div>
+      <div class="daily" id="safeDaily"></div>
+      <button class="calc" id="howCalc" data-i18n="t_how">How is this worked out?</button>
+      <div class="calcbox hidden" id="calcBox" style="background:rgba(255,255,255,.16);color:#fff;"></div>
+    </div>
+    <div class="card">
+      <h3 data-i18n="t_quick">⚡ Quick log</h3>
+      <div class="quickgrid" id="quickAmounts"></div>
+      <div class="row">
+        <input id="qAmt" type="number" inputmode="decimal" data-i18n-ph="t_amount" placeholder="Amount" style="margin:0;">
+        <select id="qCat" style="margin:0;"></select>
+      </div>
+      <button class="btn" id="qAdd" data-i18n="t_logspend">Log spend</button>
+    </div>
+    <div class="card" id="nextBillCard">
+      <h3 data-i18n="t_nextup">🔔 Next up</h3>
+      <div id="nextBillBody"></div>
+    </div>
+    <div class="card">
+      <h3 data-i18n="t_run">📅 Run to payday</h3>
+      <div id="runBody"></div>
+    </div>
+  </section>
+
+  <!-- LOG -->
+  <section id="screen-log" class="screen">
+    <h1 class="ptitle" data-i18n="l_title">Spending</h1>
+    <p class="psub" data-i18n="l_sub">Everything you've logged.</p>
+    <div class="card">
+      <div class="kv"><span data-i18n="l_week">This week</span><b id="spWeek">–</b></div>
+      <div class="kv"><span data-i18n="l_month">This month</span><b id="spMonth">–</b></div>
+    </div>
+    <div class="card"><div id="spendList"></div></div>
+  </section>
+
+  <!-- BILLS -->
+  <section id="screen-bills" class="screen">
+    <h1 class="ptitle" data-i18n="b_title">Bills</h1>
+    <p class="psub" data-i18n="b_sub">Due soonest first. Tick them off.</p>
+    <div class="card"><div id="billList"></div></div>
+    <div class="card">
+      <h3 data-i18n="b_add">+ Add bill</h3>
+      <label class="f" data-i18n="f_name">Name</label><input id="bName" placeholder="e.g. Rent">
+      <label class="f" data-i18n="f_amount">Amount</label><input id="bAmt" type="number" inputmode="decimal" placeholder="0">
+      <div class="row">
+        <div><label class="f" data-i18n="f_repeats">Repeats</label><select id="bFreq">
+          <option value="once">Just once</option><option value="weekly">Every week</option>
+          <option value="biweekly">Every 2 weeks</option><option value="semimonthly">Twice a month</option>
+          <option value="monthly" selected>Every month</option><option value="everyN">Every few months</option>
+        </select></div>
+        <div><label class="f" data-i18n="f_day">Day / date</label><input id="bDay" type="number" min="1" max="31" placeholder="e.g. 15"></div>
+      </div>
+      <div id="bNWrap" class="hidden"><label class="f" data-i18n="f_everyn">Every how many months?</label>
+        <input id="bN" type="number" min="2" max="12" value="3"></div>
+      <label class="f" data-i18n="f_first">First due (YYYY-MM-DD)</label><input id="bFirst" placeholder="2026-11-15">
+      <button class="btn" id="bAdd" data-i18n="f_addbill">Add bill</button>
+    </div>
+  </section>
+
+  <!-- GOALS -->
+  <section id="screen-goals" class="screen">
+    <h1 class="ptitle" data-i18n="g_title">Goals & Debt</h1>
+    <p class="psub" data-i18n="g_sub">Save for things. Shrink what you owe.</p>
+    <div class="tabs">
+      <button id="tabSav" class="on" data-i18n="g_sav">🎯 Savings</button>
+      <button id="tabDebt" data-i18n="g_debt">📉 Debt</button>
+    </div>
+    <div id="paneSav">
+      <div class="card"><div id="savList"></div></div>
+      <div class="card"><h3 data-i18n="g_addsav">+ Savings goal</h3>
+        <label class="f" data-i18n="f_name">Name</label><input id="sName" placeholder="e.g. Emergency fund">
+        <label class="f" data-i18n="f_target">Target</label><input id="sTarget" type="number" inputmode="decimal" placeholder="0">
+        <button class="btn" id="sAdd" data-i18n="f_addgoal">Add goal</button></div>
+    </div>
+    <div id="paneDebt" class="hidden">
+      <div class="card"><div id="debtList"></div></div>
+      <div class="card"><h3 data-i18n="g_adddebt">+ Debt</h3>
+        <label class="f" data-i18n="f_name">Name</label><input id="dName" placeholder="e.g. Credit card">
+        <div class="row"><div><label class="f" data-i18n="f_balance">Balance</label><input id="dBal" type="number" inputmode="decimal"></div>
+        <div><label class="f" data-i18n="f_minpay">Min pay</label><input id="dMin" type="number" inputmode="decimal"></div></div>
+        <button class="btn" id="dAdd" data-i18n="f_adddebt2">Add debt</button></div>
+    </div>
+  </section>
+
+  <!-- MORE -->
+  <section id="screen-more" class="screen">
+    <h1 class="ptitle" data-i18n="m_title">More</h1>
+    <p class="psub" data-i18n="m_sub">Everything else, tucked away.</p>
+    <div class="menugrid">
+      <div class="menucard" data-go="moneyin"><span class="ic">💵</span><span class="t" data-i18n="m_moneyin">Money In</span></div>
+      <div class="menucard" data-go="envelopes"><span class="ic">✉️</span><span class="t" data-i18n="m_env">Envelopes</span></div>
+      <div class="menucard" data-go="calendar"><span class="ic">🗓️</span><span class="t" data-i18n="m_cal">Calendar</span></div>
+      <div class="menucard" data-go="brain"><span class="ic">🧠</span><span class="t" data-i18n="m_brain">Brain Dump</span></div>
+      <div class="menucard" data-go="settings"><span class="ic">⚙️</span><span class="t" data-i18n="m_settings">Settings</span></div>
+      <div class="menucard" data-go="today"><span class="ic">🏠</span><span class="t" data-i18n="m_today">Today</span></div>
+    </div>
+  </section>
+
+  <!-- MONEY IN -->
+  <section id="screen-moneyin" class="screen subscreen">
+    <button class="backlink" data-back>‹ Back</button>
+    <h1 class="ptitle" data-i18n="mi_title">Money In</h1><p class="psub" data-i18n="mi_sub">Paychecks & income.</p>
+    <div class="card"><div id="payList"></div></div>
+    <div class="card"><h3 data-i18n="mi_add">+ Paycheck</h3>
+      <label class="f" data-i18n="f_name">Name</label><input id="pName" placeholder="e.g. Salary">
+      <div class="row"><div><label class="f" data-i18n="f_amount">Amount</label><input id="pAmt" type="number" inputmode="decimal"></div>
+      <div><label class="f" data-i18n="f_freq">Frequency</label><select id="pFreq">
+        <option value="weekly">Weekly</option><option value="biweekly" selected>Every 2 weeks</option>
+        <option value="semimonthly">Twice a month</option><option value="monthly">Monthly</option>
+      </select></div></div>
+      <label class="f" data-i18n="f_nextpay">Next payday (YYYY-MM-DD)</label><input id="pNext" placeholder="2026-11-15">
+      <button class="btn" id="pAdd" data-i18n="f_addpay">Add paycheck</button></div>
+  </section>
+
+  <!-- ENVELOPES -->
+  <section id="screen-envelopes" class="screen subscreen">
+    <button class="backlink" data-back>‹ Back</button>
+    <h1 class="ptitle" data-i18n="e_title">Envelopes</h1><p class="psub"><span data-i18n="e_sub">Give every pound a job. No shame if you go over.</span></p>
+    <div class="card"><div id="envList"></div></div>
+    <div class="card"><h3 data-i18n="e_add">+ Envelope</h3>
+      <div class="row"><div><label class="f" data-i18n="f_name">Name</label><input id="eName" placeholder="e.g. Groceries"></div>
+      <div><label class="f" data-i18n="f_limit">Monthly limit</label><input id="eLim" type="number" inputmode="decimal"></div></div>
+      <button class="btn" id="eAdd" data-i18n="f_addenv">Add envelope</button></div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section id="screen-calendar" class="screen subscreen">
+    <button class="backlink" data-back>‹ Back</button>
+    <div class="row" style="align-items:center;">
+      <button class="iconbtn" id="calPrev">‹</button>
+      <h1 class="ptitle" id="calTitle" style="flex:1;text-align:center;"></h1>
+      <button class="iconbtn" id="calNext">›</button>
+    </div>
+    <p class="psub center" data-i18n="c_tap">Tap a day to see details.</p>
+    <div class="card"><div class="calgrid" id="calGrid"></div></div>
+    <div class="card"><h3 id="calDayTitle" data-i18n="c_pick">Pick a day</h3><div id="calDayBody" class="small">Tap any day to see what happened.</div></div>
+  </section>
+
+  <!-- BRAIN DUMP -->
+  <section id="screen-brain" class="screen subscreen">
+    <button class="backlink" data-back>‹ Back</button>
+    <h1 class="ptitle" data-i18n="br_title">Brain Dump</h1><p class="psub" data-i18n="br_sub">No amounts. No dates. Just get it out of your head.</p>
+    <div class="card">
+      <textarea id="brainInput" data-i18n-ph="br_ph" placeholder="Type what's on your mind, press Add…"></textarea>
+      <button class="btn" id="brainAdd" data-i18n="br_add">Add</button>
+    </div>
+    <div class="card"><div id="brainList"></div></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="screen-settings" class="screen subscreen">
+    <button class="backlink" data-back>‹ Back</button>
+    <h1 class="ptitle">Settings</h1><p class="psub">Make it yours.</p>
+    <div class="card"><h3 data-i18n="s_theme">Color theme</h3>
+      <div class="row" id="themeRow" style="gap:8px;"></div></div>
+    <div class="card"><h3 data-i18n="s_lang">Language</h3>
+      <select id="setLang">
+        <option value="en">English</option><option value="es">Español</option>
+        <option value="fr">Français</option><option value="de">Deutsch</option>
+        <option value="pt">Português</option><option value="it">Italiano</option>
+      </select>
+      <p class="small" data-i18n="s_langnote">Main screens are translated. Some helper text stays in English.</p></div>
+    <div class="card"><h3 data-i18n="s_profile">Profile</h3>
+      <label class="f" data-i18n="s_name">Your name</label><input id="setName">
+      <label class="f" data-i18n="s_ptitle">Planner title</label><input id="setTitle">
+      <div class="row"><div><label class="f" data-i18n="s_currency">Currency</label><select id="setCur">
+        <option>$</option><option>£</option><option>€</option><option>₹</option><option>¥</option>
+        <option>kr</option><option>zł</option><option>R</option><option>₺</option><option>د.إ</option>
+        <option>CA$</option><option>A$</option><option>CHF</option><option>₽</option><option>₴</option>
+        <option>₱</option><option>฿</option><option>₩</option><option>₪</option><option>LE</option>
+        <option>Rs</option><option>RM</option><option>Bs</option><option>Q</option>
+      </select></div>
+      <div><label class="f" data-i18n="s_buffer">Safety buffer</label><input id="setBuf" type="number" inputmode="decimal"></div></div>
+      <button class="btn" id="setSave" data-i18n="s_save">Save</button></div>
+    <div class="card"><h3 data-i18n="s_cats">Expense categories</h3>
+      <p class="small" data-i18n="s_catsub">Add your own headings — they'll appear when you log spending.</p>
+      <div id="catList"></div>
+      <div class="row mt"><input id="newCat" data-i18n-ph="s_newcat" placeholder="New category name" style="margin:0">
+      <button class="btn small" id="catAdd" style="flex:.5">+ Add</button></div></div>
+    <div class="card"><h3>Backup</h3>
+      <p class="small">Your data lives on this device. Export a backup file to keep it safe or move it.</p>
+      <div class="row"><button class="btn small" id="bkExport">⬇ Export</button>
+      <button class="btn small ghost" id="bkImport">⬆ Import</button></div>
+      <input type="file" id="bkFile" accept=".json" class="hidden">
+      <button class="btn small ghost mt" id="csvExport">Export spending as CSV</button></div>
+    <div class="card"><h3>Fresh start</h3>
+      <button class="btn danger" id="wipeBtn">Reset everything</button></div>
+    <div class="card center small">VantaCraftDesigns · ADHD Budget Planner<br>Made for calm money days 🌿</div>
+  </section>
+
+  <nav class="bottomnav"><div class="wrap">
+    <button class="navbtn active" data-nav="today"><span class="ic">🏠</span><span data-i18n="nav_today">Today</span></button>
+    <button class="navbtn" data-nav="log"><span class="ic">⚡</span><span data-i18n="nav_log">Log</span></button>
+    <button class="navbtn" data-nav="bills"><span class="ic">🧾</span><span data-i18n="nav_bills">Bills</span></button>
+    <button class="navbtn" data-nav="goals"><span class="ic">🎯</span><span data-i18n="nav_goals">Goals</span></button>
+    <button class="navbtn" data-nav="more"><span class="ic">⋯</span><span data-i18n="nav_more">More</span></button>
+  </div></nav>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+"use strict";
+/* ============ VantaCraft ADHD Budget Planner ============ */
+
+/* ---------- utils ---------- */
+const $=id=>document.getElementById(id);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const parseD=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c);};
+const fmtD=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const addDays=(s,n)=>{const d=parseD(s);d.setDate(d.getDate()+n);return fmtD(d);};
+const daysBetween=(a,b)=>Math.round((parseD(b)-parseD(a))/864e5);
+const monthKey=s=>s.slice(0,7);
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',2200);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ---------- state ---------- */
+const LS='vc_adhd_budget_v1';
+let S=null;
+const CATS=['Groceries','Food & Drink','Transport','Fun','Shopping','Health','Bills','Other'];
+function blankState(){return{v:1,onboarded:false,focus:false,
+  profile:{name:'',title:'My calm money plan',currency:'$',theme:'light',buffer:0},
+  balance:0,paychecks:[],expenses:[],bills:[],envelopes:[],savings:[],debts:[],notes:[]};}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
+function load(){try{const r=localStorage.getItem(LS);if(r){S=JSON.parse(r);}}catch(e){} if(!S)S=blankState();
+  if(S.profile.theme==='light')S.profile.theme='cream';
+  if(!S.profile.lang)S.profile.lang='en';
+  if(!S.customCats)S.customCats=[];}
+function money(n){const c=S.profile.currency;const v=Number(n)||0;
+  return c+v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+function signed(n){const v=Number(n)||0;return(v<0?'−':'')+money(Math.abs(v));}
+
+/* ---------- demo data ---------- */
+function demoState(){const s=blankState();const t=todayStr();
+  s.profile={name:'Alex',title:'My calm money plan',currency:'$',theme:'light',buffer:50};
+  s.balance=1240;
+  s.paychecks=[{id:uid(),name:'Salary',amount:2100,freq:'biweekly',next:addDays(t,9)}];
+  s.expenses=[
+    {id:uid(),amount:54.20,category:'Groceries',note:'Weekly shop',date:addDays(t,-1)},
+    {id:uid(),amount:4.50,category:'Food & Drink',note:'Coffee',date:t},
+    {id:uid(),amount:32.00,category:'Transport',note:'Bus pass',date:addDays(t,-3)}];
+  s.bills=[
+    {id:uid(),name:'Rent',amount:850,freq:'monthly',day:1,next:addDays(t,12),paid:{}},
+    {id:uid(),name:'Electric',amount:65,freq:'monthly',day:20,next:addDays(t,5),paid:{}},
+    {id:uid(),name:'Gym',amount:30,freq:'monthly',day:5,next:addDays(t,20),paid:{}}];
+  s.envelopes=[{id:uid(),name:'Groceries',limit:300},{id:uid(),name:'Fun',limit:120}];
+  s.savings=[{id:uid(),name:'Emergency fund',target:1000,saved:340}];
+  s.debts=[{id:uid(),name:'Credit card',balance:640,rate:19.9,minPay:25,payments:[]}];
+  s.notes=[{id:uid(),text:'Call dentist about that bill',date:t}];
+  return s;}
+
+/* ---------- bill engine ---------- */
+function nextBillDate(b,from){ // from: YYYY-MM-DD
+  let d=parseD(b.next||b.first||from);
+  const f=parseD(from);
+  let guard=0;
+  while(d<f&&guard++<400){
+    if(b.freq==='once')return null;
+    if(b.freq==='weekly')d.setDate(d.getDate()+7);
+    else if(b.freq==='biweekly')d.setDate(d.getDate()+14);
+    else if(b.freq==='semimonthly'){d.setDate(d.getDate()+15);}
+    else if(b.freq==='everyN')d.setMonth(d.getMonth()+(b.everyN||3));
+    else d.setMonth(d.getMonth()+1); // monthly
+  }
+  return fmtD(d);
+}
+function billOccurrences(b,from,to){ // list of due dates in [from,to]
+  const out=[];let cur=nextBillDate(b,from);let guard=0;
+  while(cur&&cur<=to&&guard++<60){
+    if(!b.paid||!b.paid[cur])out.push(cur);
+    const d=parseD(cur);
+    if(b.freq==='once')break;
+    if(b.freq==='weekly')d.setDate(d.getDate()+7);
+    else if(b.freq==='biweekly')d.setDate(d.getDate()+14);
+    else if(b.freq==='semimonthly')d.setDate(d.getDate()+15);
+    else if(b.freq==='everyN')d.setMonth(d.getMonth()+(b.everyN||3));
+    else d.setMonth(d.getMonth()+1);
+    cur=fmtD(d);
+  }
+  return out;}
+function paycheckNext(p,from){let d=parseD(p.next);const f=parseD(from);let g=0;
+  while(d<f&&g++<200){if(p.freq==='weekly')d.setDate(d.getDate()+7);
+    else if(p.freq==='biweekly')d.setDate(d.getDate()+14);
+    else if(p.freq==='semimonthly')d.setDate(d.getDate()+15);
+    else d.setMonth(d.getMonth()+1);}return fmtD(d);}
+
+/* ---------- safe-to-spend engine ---------- */
+function safeToSpend(){const t=todayStr();
+  const pays=S.paychecks.map(p=>({...p,next:paycheckNext(p,t)})).filter(p=>p.next);
+  pays.sort((a,b)=>a.next<b.next?-1:1);
+  const nextPay=pays.length?pays[0]:null;
+  const horizon=nextPay?nextPay.next:addDays(t,30);
+  let billsDue=0;const dueList=[];
+  S.bills.forEach(b=>{billOccurrences(b,t,horizon).forEach(d=>{billsDue+=+b.amount;dueList.push({b,date:d});});});
+  let incomeBefore=0;if(nextPay)incomeBefore+=+nextPay.amount;
+  const envSet=0; // envelopes are soft caps, not set-asides
+  const buffer=+S.profile.buffer||0;
+  const safe=S.balance+incomeBefore-billsDue-buffer;
+  const days=Math.max(1,daysBetween(t,horizon));
+  return{safe,daily:safe/days,days,horizon,nextPay,billsDue,incomeBefore,buffer,dueList};}
+
+/* ---------- navigation ---------- */
+let curScreen='today';
+function show(name,keep){curScreen=name;document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=$('screen-'+name);if(el)el.classList.add('active');
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));
+  if(!keep)window.scrollTo(0,0);
+  if(name==='today')renderToday();if(name==='log')renderLog();if(name==='bills')renderBills();
+  if(name==='goals')renderGoals();if(name==='moneyin')renderPay();if(name==='envelopes')renderEnv();
+  if(name==='calendar')renderCal();if(name==='brain')renderBrain();if(name==='settings')renderSettings();}
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>show(b.dataset.nav));
+document.querySelectorAll('[data-go]').forEach(c=>c.onclick=()=>show(c.dataset.go));
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>show('more'));
+
+/* ---------- onboarding ---------- */
+let onbStep=0;
+function renderOnb(){const b=$('onbBody');const dots=n=>{let h='<div class="steps">';for(let i=0;i<n;i++)h+=`<span class="${i===onbStep?'on':''}"></span>`;return h+'</div>';};
+  if(onbStep===0){b.innerHTML=`<div style="font-size:54px">🌿</div><h1>${tr('o_tour_t')}</h1>
+    <p>${tr('o_tour_p')}</p>${dots(4)}
+    <button class="btn" onclick="onbStep=1;renderOnb()">${tr('o_tour')}</button>
+    <button class="btn ghost" onclick="startFresh()">${tr('o_skip')}</button>`;}
+  else if(onbStep===1){S=demoState();save();applyTheme();b.innerHTML=`<h1>${tr('o_ex_t')}</h1>
+    <p>${tr('o_ex_p')}</p>${dots(4)}
+    <button class="btn" onclick="S.onboarded=true;save();show('today')">${tr('o_explore')}</button>
+    <button class="btn ghost" onclick="onbStep=2;renderOnb()">${tr('o_setup')}</button>`;}
+  else if(onbStep===2){b.innerHTML=`<h1>${tr('o_s1t')}</h1><p>${tr('o_s1p')}</p>${dots(4)}
+    <label class="f" style="text-align:left">${tr('o_name')}</label><input id="oName" placeholder="e.g. Alex">
+    <label class="f" style="text-align:left">${tr('o_ptitle')}</label><input id="oTitle" value="My calm money plan">
+    <button class="btn" onclick="onbName()">${tr('o_continue')}</button>`;}
+  else if(onbStep===3){b.innerHTML=`<h1>${tr('o_s2t')}</h1><p>${tr('o_s2p')}</p>${dots(4)}
+    <div class="row" style="text-align:left"><div><label class="f">${tr('o_currency')}</label><select id="oCur">
+    ${['$','£','€','₹','¥','kr','zł'].map(c=>`<option>${c}</option>`).join('')}</select></div>
+    <div><label class="f">${tr('o_buffer')}</label><input id="oBuf" type="number" value="50"></div></div>
+    <button class="btn" onclick="onbCur()">${tr('o_continue')}</button>`;}
+  else if(onbStep===4){const t=todayStr();b.innerHTML=`<h1>${tr('o_s3t')}</h1><p>${tr('o_s3p')}</p>${dots(4)}
+    <div class="row" style="text-align:left"><div><label class="f">${tr('o_balance')}</label><input id="oBal" type="number" inputmode="decimal" placeholder="0"></div>
+    <div><label class="f">${tr('o_payamt')}</label><input id="oPay" type="number" inputmode="decimal" placeholder="0"></div></div>
+    <label class="f" style="text-align:left">${tr('o_nextpay')}</label><input id="oNext" value="${addDays(t,9)}">
+    <button class="btn" onclick="onbMoney()">${tr('o_continue')}</button>`;}
+  else{b.innerHTML=`<h1>${tr('o_s4t')}</h1><p>${tr('o_s4p')}</p>${dots(4)}
+    <label class="f" style="text-align:left">${tr('o_billname')}</label><input id="oBill" placeholder="e.g. Rent">
+    <div class="row" style="text-align:left"><div><label class="f">${tr('o_billamt')}</label><input id="oBillAmt" type="number" inputmode="decimal"></div>
+    <div><label class="f">${tr('o_billday')}</label><input id="oBillDay" type="number" min="1" max="31"></div></div>
+    <button class="btn" onclick="onbFinish()">${tr('o_start')}</button>
+    <button class="btn ghost" onclick="onbFinish(true)">${tr('o_skipthis')}</button>`;}
+}
+function startFresh(){S=blankState();save();onbStep=2;renderOnb();}
+function onbName(){S=demoState();S.expenses=[];S.bills=[];S.envelopes=[];S.savings=[];S.debts=[];S.notes=[];S.balance=0;S.paychecks=[];
+  S.profile.name=$('oName').value.trim()||'Friend';S.profile.title=$('oTitle').value.trim()||'My calm money plan';save();onbStep=3;renderOnb();}
+function onbCur(){S.profile.currency=$('oCur').value;S.profile.buffer=+$('oBuf').value||0;save();onbStep=4;renderOnb();}
+function onbMoney(){S.balance=+$('oBal').value||0;const amt=+$('oPay').value||0;const nx=$('oNext').value||addDays(todayStr(),14);
+  if(amt>0)S.paychecks=[{id:uid(),name:'Paycheck',amount:amt,freq:'biweekly',next:nx}];save();onbStep=5;renderOnb();}
+function onbFinish(skip){const n=$('oBill').value.trim(),a=+$('oBillAmt').value||0,d=+$('oBillDay').value||0;
+  if(!skip&&n&&a>0){const t=todayStr();S.bills=[{id:uid(),name:n,amount:a,freq:'monthly',day:d,next:nextBillDate({freq:'monthly',next:t},t),paid:{}}];}
+  S.onboarded=true;save();applyTheme();show('today');toast('Welcome, '+esc(S.profile.name)+'! 🌿');}
+
+/* ---------- theme & focus ---------- */
+function applyTheme(){document.documentElement.dataset.theme=S.profile.theme||'light';
+  document.querySelector('meta[name="theme-color"]').content=S.profile.theme==='dark'?'#1e1c19':'#F7F2E9';}
+$('themeBtn').onclick=()=>{const ids=THEMES.map(x=>x[0]);const i=ids.indexOf(S.profile.theme||'cream');
+  setTheme(ids[(i+1)%ids.length]);toast('🎨 '+THEMES[(i+1)%ids.length][1]);};
+$('themeBtn2').onclick=$('themeBtn').onclick;
+$('focusBtn').onclick=()=>{S.focus=!S.focus;save();
+  document.querySelectorAll('#screen-today .card').forEach((c,i)=>{if(i>0)c.classList.toggle('hidden',S.focus);});
+  toast(S.focus?'Focus mode: just the number 🧠':'Full view back');};
+$('focusBtn2').onclick=$('focusBtn').onclick;
+
+/* ---------- TODAY ---------- */
+function renderToday(){const t=todayStr();const d=parseD(t);
+  $('todayGreet').textContent=(S.profile.name?'Hi '+S.profile.name+' 👋':'Today');
+  $('todayDate').textContent=d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+  const r=safeToSpend();
+  $('safeBig').textContent=signed(r.safe);
+  $('safeDaily').textContent=r.nextPay?('≈ '+money(r.daily)+' / day · '+r.days+' days to payday ('+r.nextPay.name+')'):tr('t_nopay');
+  $('calcBox').innerHTML=`<b>How it's worked out:</b><br>Balance ${money(S.balance)} + income before payday ${money(r.incomeBefore)} − bills due ${money(r.billsDue)} − safety buffer ${money(r.buffer)} = <b>${signed(r.safe)}</b>`;
+  // quick log
+  $('quickAmounts').innerHTML=[5,10,20,50].map(a=>`<button onclick="quickLog(${a})">${S.profile.currency}${a}</button>`).join('');
+  $('qCat').innerHTML=allCats().map(c=>`<option>${esc(c)}</option>`).join('');
+  // next bill
+  const nb=[];S.bills.forEach(b=>{const nx=nextBillDate(b,t);if(nx)nb.push({b,nx});});
+  nb.sort((a,b)=>a.nx<b.nx?-1:1);
+  $('nextBillBody').innerHTML=nb.length?nb.slice(0,3).map(({b,nx})=>{
+    const days=daysBetween(t,nx);return`<div class="kv"><span>🧾 ${esc(b.name)} <span class="small">· ${nx}${days===0?' · today!':days===1?' · tomorrow':''}</span></span><b>${money(b.amount)}</b></div>`;}).join('')
+    :'<p class="small">'+tr('t_nobills')+'</p>';
+  // run to payday
+  let rh='';for(let i=0;i<Math.min(r.days,14);i++){const day=addDays(t,i);
+    rh+=`<div class="kv"><span>${i===0?'Today':parseD(day).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</span><b>${money(r.daily)}</b></div>`;}
+  if(r.days>14)rh+=`<p class="small center">${tr('t_moredays').replace('{n}',r.days-14).replace('{d}',money(r.daily))}</p>`;
+  $('runBody').innerHTML=rh;
+  if(S.focus)document.querySelectorAll('#screen-today .card').forEach((c,i)=>{if(i>0)c.classList.add('hidden');});
+}
+$('howCalc').onclick=()=>$('calcBox').classList.toggle('hidden');
+function quickLog(a){addExpense(a,$('qCat').value,'');}
+$('qAdd').onclick=()=>{const a=+$('qAmt').value;if(a>0){addExpense(a,$('qCat').value,'');$('qAmt').value='';}};
+function addExpense(a,cat,note){S.expenses.unshift({id:uid(),amount:a,category:cat,note:note,date:todayStr()});save();renderToday();toast('Logged '+money(a)+' ✓');}
+
+/* ---------- LOG ---------- */
+function renderLog(){const t=todayStr(),mk=monthKey(t);
+  const wk=t.slice(0,7);let wsum=0,msum=0;
+  const wkStart=addDays(t,-((parseD(t).getDay()+6)%7));
+  S.expenses.forEach(e=>{if(e.date>=wkStart)wsum+=+e.amount;if(monthKey(e.date)===mk)msum+=+e.amount;});
+  $('spWeek').textContent=money(wsum);$('spMonth').textContent=money(msum);
+  $('spendList').innerHTML=S.expenses.length?S.expenses.slice(0,60).map(e=>
+    `<div class="listitem"><div class="dot"></div><div class="grow"><div class="t">${esc(e.category)}${e.note?' <span class="s">· '+esc(e.note)+'</span>':''}</div>
+    <div class="s">${e.date}</div></div><div class="amt neg">−${money(e.amount)}</div>
+    <button class="iconbtn" style="width:32px;height:32px;font-size:14px" onclick="delExp('${e.id}')">✕</button></div>`).join('')
+    :'<p class="small center">'+tr('l_empty')+'</p>';
+}
+function delExp(id){S.expenses=S.expenses.filter(e=>e.id!==id);save();renderLog();}
+
+/* ---------- BILLS ---------- */
+function renderBills(){const t=todayStr();
+  const rows=[];S.bills.forEach(b=>{const nx=nextBillDate(b,t);if(nx)rows.push({b,nx});});
+  rows.sort((a,b)=>a.nx<b.nx?-1:1);
+  $('billList').innerHTML=rows.length?rows.map(({b,nx})=>{
+    const paid=b.paid&&b.paid[nx];const days=daysBetween(t,nx);
+    return`<div class="listitem"><button class="iconbtn" style="width:36px;height:36px" onclick="toggleBill('${b.id}','${nx}')">${paid?'✅':'⬜'}</button>
+    <div class="grow"><div class="t" style="${paid?'text-decoration:line-through;opacity:.5':''}">${esc(b.name)}</div>
+    <div class="s">${nx} · ${b.freq}${days<0?' · <b style="color:var(--danger)">overdue</b>':days===0?' · <b>today</b>':''}</div></div>
+    <div class="amt">${money(b.amount)}</div>
+    <button class="iconbtn" style="width:32px;height:32px;font-size:14px" onclick="delBill('${b.id}')">✕</button></div>`;}).join('')
+    :'<p class="small center">'+tr('b_empty')+'</p>';
+}
+function toggleBill(id,nx){const b=S.bills.find(x=>x.id===id);if(!b)return;b.paid=b.paid||{};
+  if(b.paid[nx])delete b.paid[nx];else b.paid[nx]=true;save();renderBills();renderToday();}
+function delBill(id){if(!confirm('Delete this bill?'))return;S.bills=S.bills.filter(b=>b.id!==id);save();renderBills();}
+$('bFreq').onchange=()=>$('bNWrap').classList.toggle('hidden',$('bFreq').value!=='everyN');
+$('bAdd').onclick=()=>{const n=$('bName').value.trim(),a=+$('bAmt').value;
+  if(!n||!(a>0))return toast('Add a name and amount');
+  const t=todayStr();const f=$('bFreq').value;
+  S.bills.push({id:uid(),name:n,amount:a,freq:f,day:+$('bDay').value||1,
+    everyN:f==='everyN'?+$('bN').value||3:undefined,
+    next:$('bFirst').value||t,paid:{}});
+  ['bName','bAmt','bDay','bFirst'].forEach(i=>$(i).value='');save();renderBills();toast('Bill added 🧾');};
+
+/* ---------- GOALS ---------- */
+$('tabSav').onclick=()=>{$('tabSav').classList.add('on');$('tabDebt').classList.remove('on');$('paneSav').classList.remove('hidden');$('paneDebt').classList.add('hidden');};
+$('tabDebt').onclick=()=>{$('tabDebt').classList.add('on');$('tabSav').classList.remove('on');$('paneDebt').classList.remove('hidden');$('paneSav').classList.add('hidden');};
+function renderGoals(){
+  $('savList').innerHTML=S.savings.length?S.savings.map(g=>{const pc=Math.min(100,Math.round(100*g.saved/g.target));
+    return`<div class="mb"><div class="kv"><span>🎯 <b>${esc(g.name)}</b></span><b>${money(g.saved)} / ${money(g.target)}</b></div>
+    <div class="progress"><div style="width:${pc}%"></div></div>
+    <div class="row mt"><input type="number" inputmode="decimal" placeholder="Add savings" id="sv_${g.id}" style="margin:0">
+    <button class="btn small" style="flex:.6" onclick="addSav('${g.id}')">+ Add</button>
+    <button class="btn small ghost" style="flex:.4" onclick="delSav('${g.id}')">✕</button></div></div>`;}).join('')
+    :'<p class="small center">'+tr('g_nosav')+'</p>';
+  $('debtList').innerHTML=S.debts.length?S.debts.map(d=>
+    `<div class="mb"><div class="kv"><span>💳 <b>${esc(d.name)}</b>${d.rate?` <span class="small">${d.rate}%</span>`:''}</span><b>${money(d.balance)}</b></div>
+    <div class="small">Min payment: ${money(d.minPay||0)} · Paid so far: ${money((d.payments||[]).reduce((s,p)=>s+(+p.amount),0))}</div>
+    <div class="row mt"><input type="number" inputmode="decimal" placeholder="Record payment" id="db_${d.id}" style="margin:0">
+    <button class="btn small" style="flex:.6" onclick="payDebt('${d.id}')">Record</button>
+    <button class="btn small ghost" style="flex:.4" onclick="delDebt('${d.id}')">✕</button></div></div>`).join('')
+    :'<p class="small center">'+tr('g_nodebt')+'</p>';
+}
+function addSav(id){const g=S.savings.find(x=>x.id===id);const a=+$('sv_'+id).value;if(!(a>0))return;
+  g.saved=+g.saved+a;save();renderGoals();toast('Saved '+money(a)+' 🎯');}
+function delSav(id){if(!confirm('Delete this goal?'))return;S.savings=S.savings.filter(g=>g.id!==id);save();renderGoals();}
+function payDebt(id){const d=S.debts.find(x=>x.id===id);const a=+$('db_'+id).value;if(!(a>0))return;
+  d.balance=Math.max(0,+d.balance-a);d.payments=d.payments||[];d.payments.push({amount:a,date:todayStr()});save();renderGoals();toast('Payment recorded 📉');}
+function delDebt(id){if(!confirm('Delete this debt?'))return;S.debts=S.debts.filter(d=>d.id!==id);save();renderGoals();}
+$('sAdd').onclick=()=>{const n=$('sName').value.trim(),t=+$('sTarget').value;if(!n||!(t>0))return toast('Name + target needed');
+  S.savings.push({id:uid(),name:n,target:t,saved:0});$('sName').value='';$('sTarget').value='';save();renderGoals();};
+$('dAdd').onclick=()=>{const n=$('dName').value.trim(),b=+$('dBal').value;if(!n||!(b>0))return toast('Name + balance needed');
+  S.debts.push({id:uid(),name:n,balance:b,rate:0,minPay:+$('dMin').value||0,payments:[]});
+  ['dName','dBal','dMin'].forEach(i=>$(i).value='');save();renderGoals();};
+
+/* ---------- MONEY IN ---------- */
+function renderPay(){const t=todayStr();
+  $('payList').innerHTML=S.paychecks.length?S.paychecks.map(p=>{const nx=paycheckNext(p,t);
+    return`<div class="listitem"><div class="dot"></div><div class="grow"><div class="t">${esc(p.name)}</div>
+    <div class="s">${p.freq} · next ${nx}</div></div><div class="amt">+${money(p.amount)}</div>
+    <button class="iconbtn" style="width:32px;height:32px;font-size:14px" onclick="delPay('${p.id}')">✕</button></div>`;}).join('')
+    :'<p class="small center">'+tr('mi_empty')+'</p>';
+}
+function delPay(id){S.paychecks=S.paychecks.filter(p=>p.id!==id);save();renderPay();}
+$('pAdd').onclick=()=>{const n=$('pName').value.trim(),a=+$('pAmt').value;if(!n||!(a>0))return toast('Name + amount needed');
+  S.paychecks.push({id:uid(),name:n,amount:a,freq:$('pFreq').value,next:$('pNext').value||addDays(todayStr(),14)});
+  ['pName','pAmt','pNext'].forEach(i=>$(i).value='');save();renderPay();toast('Paycheck added 💵');};
+
+/* ---------- ENVELOPES ---------- */
+function renderEnv(){const mk=monthKey(todayStr());
+  $('envList').innerHTML=S.envelopes.length?S.envelopes.map(e=>{
+    const spent=S.expenses.filter(x=>x.category===e.name&&monthKey(x.date)===mk).reduce((s,x)=>s+(+x.amount),0);
+    const pc=e.limit?Math.min(100,Math.round(100*spent/e.limit)):0;const over=spent>e.limit;
+    return`<div class="mb"><div class="kv"><span>✉️ <b>${esc(e.name)}</b></span><b>${money(spent)} / ${money(e.limit)}</b></div>
+    <div class="progress"><div style="width:${pc}%;${over?'background:var(--danger)':''}"></div></div>
+    ${over?'<p class="small">Over by '+money(spent-e.limit)+' — no shame, just noticing. 💚</p>':''}
+    <button class="btn small ghost mt" onclick="delEnv('${e.id}')">Remove</button></div>`;}).join('')
+    :'<p class="small center">'+tr('e_empty')+'</p>';
+}
+function delEnv(id){S.envelopes=S.envelopes.filter(e=>e.id!==id);save();renderEnv();}
+$('eAdd').onclick=()=>{const n=$('eName').value.trim(),l=+$('eLim').value;if(!n||!(l>0))return toast('Name + limit needed');
+  S.envelopes.push({id:uid(),name:n,limit:l});$('eName').value='';$('eLim').value='';save();renderEnv();};
+
+/* ---------- CALENDAR ---------- */
+let calCursor=monthKey(todayStr());
+function renderCal(){const[yy,mm]=calCursor.split('-').map(Number);
+  const first=new Date(yy,mm-1,1);const startDay=(first.getDay()+6)%7;
+  $('calTitle').textContent=first.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  let h=['M','T','W','T','F','S','S'].map(d=>`<div class="dow">${d}</div>`).join('');
+  const daysIn=new Date(yy,mm,0).getDate();const prevDays=new Date(yy,mm-1,0).getDate();
+  for(let i=startDay-1;i>=0;i--){const d=prevDays-i;h+=`<div class="day dim">${d}</div>`;}
+  for(let d=1;d<=daysIn;d++){const ds=`${yy}-${String(mm).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const sp=S.expenses.filter(e=>e.date===ds).reduce((s,e)=>s+(+e.amount),0);
+    const bl=S.bills.filter(b=>billOccurrences(b,ds,ds).length);
+    h+=`<div class="day" onclick="calDay('${ds}')"><b>${d}</b>${sp?`<div class="e">−${Math.round(sp)}</div>`:''}${bl.length?'<div class="e">🧾</div>':''}</div>`;}
+  const tail=(7-((startDay+daysIn)%7))%7;for(let d=1;d<=tail;d++)h+=`<div class="day dim">${d}</div>`;
+  $('calGrid').innerHTML=h;
+}
+$('calPrev').onclick=()=>{const[y,m]=calCursor.split('-').map(Number);const d=new Date(y,m-2,1);calCursor=fmtD(d).slice(0,7);renderCal();};
+$('calNext').onclick=()=>{const[y,m]=calCursor.split('-').map(Number);const d=new Date(y,m,1);calCursor=fmtD(d).slice(0,7);renderCal();};
+function calDay(ds){const d=parseD(ds);
+  $('calDayTitle').textContent=d.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'});
+  const ex=S.expenses.filter(e=>e.date===ds);const bl=[];
+  S.bills.forEach(b=>billOccurrences(b,ds,ds).forEach(()=>bl.push(b)));
+  let h='';
+  if(bl.length)h+='<b>Bills:</b><br>'+bl.map(b=>`🧾 ${esc(b.name)} — ${money(b.amount)}`).join('<br>');
+  if(ex.length)h+=(h?'<br><br>':'')+'<b>Spent:</b><br>'+ex.map(e=>`−${money(e.amount)} · ${esc(e.category)}${e.note?' ('+esc(e.note)+')':''}`).join('<br>');
+  $('calDayBody').innerHTML=h||tr('c_nothing');
+}
+
+/* ---------- BRAIN DUMP ---------- */
+function renderBrain(){$('brainList').innerHTML=S.notes.length?S.notes.map(n=>
+  `<div class="listitem"><div class="dot"></div><div class="grow"><div class="t">${esc(n.text)}</div><div class="s">${n.date}</div></div>
+  <button class="iconbtn" style="width:32px;height:32px;font-size:14px" onclick="delNote('${n.id}')">✓</button></div>`).join('')
+  :'<p class="small center">'+tr('br_empty')+'</p>';
+}
+$('brainAdd').onclick=()=>{const v=$('brainInput').value.trim();if(!v)return;
+  S.notes.unshift({id:uid(),text:v,date:todayStr()});$('brainInput').value='';save();renderBrain();toast('Dumped ✓');};
+function delNote(id){S.notes=S.notes.filter(n=>n.id!==id);save();renderBrain();}
+
+/* ---------- SETTINGS ---------- */
+function buildStaticSelects(){const bf=$('bFreq');if(bf){const v=bf.value;
+    bf.innerHTML=['once','weekly','biweekly','semimonthly','monthly','everyN'].map(x=>`<option value="${x}">${tr('fr_'+x)}</option>`).join('');bf.value=v||'monthly';}
+  const pf=$('pFreq');if(pf){const v2=pf.value;
+    pf.innerHTML=['weekly','biweekly','semimonthly','monthly'].map(x=>`<option value="${x}">${tr('pf_'+x)}</option>`).join('');pf.value=v2||'biweekly';}}
+function renderSettings(){$('setName').value=S.profile.name||'';$('setTitle').value=S.profile.title||'';
+  $('setCur').value=S.profile.currency||'$';$('setBuf').value=S.profile.buffer||0;
+  $('setLang').value=S.profile.lang||'en';renderThemeRow();renderCats();}
+$('setLang').onchange=()=>{S.profile.lang=$('setLang').value;save();applyLang();};
+$('catAdd').onclick=()=>{const v=$('newCat').value.trim();if(!v)return;
+  if(!S.customCats.includes(v)&&!CATS.includes(v))S.customCats.push(v);
+  $('newCat').value='';save();renderCats();toast('Category added 🏷️');};
+$('setSave').onclick=()=>{S.profile.name=$('setName').value.trim();S.profile.title=$('setTitle').value.trim()||'My calm money plan';
+  S.profile.currency=$('setCur').value;S.profile.buffer=+$('setBuf').value||0;save();applyTheme();toast('Saved ✓');};
+$('bkExport').onclick=()=>{const blob=new Blob([JSON.stringify(S)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='vantacraft-budget-backup-'+todayStr()+'.json';a.click();toast('Backup downloaded ⬇');};
+$('bkImport').onclick=()=>$('bkFile').click();
+$('bkFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(d&&d.profile){S=d;save();applyTheme();show('today');toast('Backup restored ✓');}else toast('That file didn\'t look right');}catch(err){toast('Could not read file');}};
+  r.readAsText(f);};
+$('csvExport').onclick=()=>{let csv='date,category,note,amount\n';
+  S.expenses.forEach(e=>{csv+=`${e.date},"${e.category}","${(e.note||'').replace(/"/g,'""')}",${e.amount}\n`;});
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='spending-'+todayStr()+'.csv';a.click();toast('CSV downloaded ⬇');};
+$('wipeBtn').onclick=()=>{if(confirm('Delete ALL your data and start over?')){localStorage.removeItem(LS);location.reload();}};
+
+/* ---------- i18n ---------- */
+const T={
+en:{nav_today:'Today',nav_log:'Log',nav_bills:'Bills',nav_goals:'Goals',nav_more:'More',t_safe:'Safe to spend',t_how:'How is this worked out?',t_quick:'⚡ Quick log',t_amount:'Amount',t_logspend:'Log spend',t_nextup:'🔔 Next up',t_run:'📅 Run to payday',t_nopay:'Add a paycheck in More → Money In',t_nobills:'No bills yet — add one in the Bills tab. 🎉',t_moredays:'…and {n} more days at {d}/day',l_title:'Spending',l_sub:"Everything you've logged.",l_week:'This week',l_month:'This month',l_empty:'Nothing logged yet. Tap ⚡ Log to add your first spend.',b_title:'Bills',b_sub:'Due soonest first. Tick them off.',b_add:'+ Add bill',f_name:'Name',f_amount:'Amount',f_repeats:'Repeats',f_day:'Day / date',f_first:'First due (YYYY-MM-DD)',f_addbill:'Add bill',b_empty:'No bills. Add your first one below 👇',fr_once:'Just once',fr_weekly:'Every week',fr_biweekly:'Every 2 weeks',fr_semimonthly:'Twice a month',fr_monthly:'Every month',fr_everyN:'Every few months',f_everyn:'Every how many months?',g_title:'Goals & Debt',g_sub:'Save for things. Shrink what you owe.',g_sav:'🎯 Savings',g_debt:'📉 Debt',g_addsav:'+ Savings goal',f_target:'Target',f_addgoal:'Add goal',g_adddebt:'+ Debt',f_balance:'Balance',f_minpay:'Min pay',f_adddebt2:'Add debt',g_nosav:'No savings goals yet.',g_nodebt:'No debts tracked. Nice. 🎉',m_title:'More',m_sub:'Everything else, tucked away.',m_moneyin:'Money In',m_env:'Envelopes',m_cal:'Calendar',m_brain:'Brain Dump',m_settings:'Settings',m_today:'Today',mi_title:'Money In',mi_sub:'Paychecks & income.',mi_add:'+ Paycheck',f_freq:'Frequency',f_nextpay:'Next payday (YYYY-MM-DD)',f_addpay:'Add paycheck',mi_empty:'No paychecks yet — your safe-to-spend needs one.',pf_weekly:'Weekly',pf_biweekly:'Every 2 weeks',pf_semimonthly:'Twice a month',pf_monthly:'Monthly',e_title:'Envelopes',e_sub:'Give your money a job. No shame if you go over.',e_empty:'No envelopes yet.',f_limit:'Monthly limit',f_addenv:'Add envelope',c_tap:'Tap a day to see details.',c_pick:'Pick a day',c_nothing:'Nothing on this day.',br_title:'Brain Dump',br_sub:'No amounts. No dates. Just get it out of your head.',br_ph:"Type what's on your mind, press Add…",br_add:'Add',br_empty:'Empty head, happy head. 🧠✨',s_theme:'Color theme',s_lang:'Language',s_langnote:'Main screens are translated. Some helper text stays in English.',s_profile:'Profile',s_name:'Your name',s_ptitle:'Planner title',s_currency:'Currency',s_buffer:'Safety buffer',s_save:'Save',s_cats:'Expense categories',s_catsub:"Add your own headings — they'll appear when you log spending.",s_newcat:'New category name',o_tour_t:'A calmer way<br>to do money',o_tour_p:"One number tells you what's safe to spend.<br>No spreadsheets. No bank login. No shame.",o_tour:'Take the tour',o_skip:'Skip — set up mine',o_ex_t:'Try it with<br>example numbers',o_ex_p:"Poke around safely — nothing is real yet.<br>When you're ready, we'll swap in yours.",o_explore:'Explore the demo',o_setup:'Set up mine now',o_s1t:'Step 1 of 4',o_s1p:'What should we call you,<br>and your money plan?',o_name:'Your name',o_ptitle:'Planner title',o_continue:'Continue',o_s2t:'Step 2 of 4',o_s2p:'Your currency & safety buffer.',o_currency:'Currency',o_buffer:'Safety buffer',o_s3t:'Step 3 of 4',o_s3p:"What's in your account <b>right now</b>,<br>and when's payday?",o_balance:'Current balance',o_payamt:'Payday amount',o_nextpay:'Next payday (YYYY-MM-DD)',o_s4t:'Step 4 of 4',o_s4p:"Add your biggest bill.<br>You can add the rest inside.",o_billname:'Bill name',o_billamt:'Amount',o_billday:'Day of month',o_start:'Start budgeting 🎉',o_skipthis:'Skip this'},
+es:{nav_today:'Hoy',nav_log:'Gastos',nav_bills:'Facturas',nav_goals:'Metas',nav_more:'Más',t_safe:'Seguro para gastar',t_how:'¿Cómo se calcula?',t_quick:'⚡ Registro rápido',t_amount:'Cantidad',t_logspend:'Registrar gasto',t_nextup:'🔔 Próximo',t_run:'📅 Hasta el pago',t_nopay:'Añade un salario en Más → Ingresos',t_nobills:'Sin facturas — añade una en la pestaña Facturas. 🎉',t_moredays:'…y {n} días más a {d}/día',l_title:'Gastos',l_sub:'Todo lo que has registrado.',l_week:'Esta semana',l_month:'Este mes',l_empty:'Nada registrado. Toca ⚡ para añadir tu primer gasto.',b_title:'Facturas',b_sub:'Las más próximas primero. Márcalas.',b_add:'+ Añadir factura',f_name:'Nombre',f_amount:'Cantidad',f_repeats:'Repite',f_day:'Día / fecha',f_first:'Primer vencimiento (AAAA-MM-DD)',f_addbill:'Añadir factura',b_empty:'Sin facturas. Añade la primera abajo 👇',fr_once:'Solo una vez',fr_weekly:'Cada semana',fr_biweekly:'Cada 2 semanas',fr_semimonthly:'Dos veces al mes',fr_monthly:'Cada mes',fr_everyN:'Cada pocos meses',f_everyn:'¿Cada cuántos meses?',g_title:'Metas y Deudas',g_sub:'Ahorra para tus cosas. Reduce lo que debes.',g_sav:'🎯 Ahorros',g_debt:'📉 Deudas',g_addsav:'+ Meta de ahorro',f_target:'Meta',f_addgoal:'Añadir meta',g_adddebt:'+ Deuda',f_balance:'Saldo',f_minpay:'Pago mín.',f_adddebt2:'Añadir deuda',g_nosav:'Sin metas de ahorro.',g_nodebt:'Sin deudas. ¡Genial! 🎉',m_title:'Más',m_sub:'Todo lo demás, guardado.',m_moneyin:'Ingresos',m_env:'Sobres',m_cal:'Calendario',m_brain:'Descarga mental',m_settings:'Ajustes',m_today:'Hoy',mi_title:'Ingresos',mi_sub:'Salarios e ingresos.',mi_add:'+ Salario',f_freq:'Frecuencia',f_nextpay:'Próximo pago (AAAA-MM-DD)',f_addpay:'Añadir salario',mi_empty:'Sin salarios — tu "seguro para gastar" lo necesita.',pf_weekly:'Semanal',pf_biweekly:'Cada 2 semanas',pf_semimonthly:'Dos veces al mes',pf_monthly:'Mensual',e_title:'Sobres',e_sub:'Dale un trabajo a tu dinero. Sin culpa si te pasas.',e_empty:'Sin sobres aún.',f_limit:'Límite mensual',f_addenv:'Añadir sobre',c_tap:'Toca un día para ver detalles.',c_pick:'Elige un día',c_nothing:'Nada este día.',br_title:'Descarga mental',br_sub:'Sin cantidades. Sin fechas. Sácalo de tu cabeza.',br_ph:'Escribe lo que piensas, pulsa Añadir…',br_add:'Añadir',br_empty:'Cabeza vacía, cabeza feliz. 🧠✨',s_theme:'Tema de color',s_lang:'Idioma',s_langnote:'Las pantallas principales están traducidas. Algún texto de ayuda sigue en inglés.',s_profile:'Perfil',s_name:'Tu nombre',s_ptitle:'Título del plan',s_currency:'Moneda',s_buffer:'Colchón de seguridad',s_save:'Guardar',s_cats:'Categorías de gasto',s_catsub:'Añade tus propios encabezados — aparecerán al registrar gastos.',s_newcat:'Nueva categoría',o_tour_t:'Una forma más tranquila<br>de manejar dinero',o_tour_p:'Un número te dice qué puedes gastar.<br>Sin hojas de cálculo. Sin banco. Sin culpa.',o_tour:'Hacer el tour',o_skip:'Omitir — configurar lo mío',o_ex_t:'Pruébalo con<br>números de ejemplo',o_ex_p:'Explora sin miedo — nada es real aún.<br>Cuando estés listo, pondremos los tuyos.',o_explore:'Explorar la demo',o_setup:'Configurar lo mío',o_s1t:'Paso 1 de 4',o_s1p:'¿Cómo te llamas<br>y tu plan de dinero?',o_name:'Tu nombre',o_ptitle:'Título del plan',o_continue:'Continuar',o_s2t:'Paso 2 de 4',o_s2p:'Tu moneda y colchón de seguridad.',o_currency:'Moneda',o_buffer:'Colchón',o_s3t:'Paso 3 de 4',o_s3p:'¿Cuánto hay en tu cuenta <b>ahora mismo</b><br>y cuándo cobras?',o_balance:'Saldo actual',o_payamt:'Cantidad del pago',o_nextpay:'Próximo pago (AAAA-MM-DD)',o_s4t:'Paso 4 de 4',o_s4p:'Añade tu factura más grande.<br>El resto dentro.',o_billname:'Nombre de factura',o_billamt:'Cantidad',o_billday:'Día del mes',o_start:'¡Empezar! 🎉',o_skipthis:'Omitir'},
+fr:{nav_today:"Aujourd'hui",nav_log:'Dépenses',nav_bills:'Factures',nav_goals:'Objectifs',nav_more:'Plus',t_safe:'À dépenser sans risque',t_how:'Comment est-ce calculé ?',t_quick:'⚡ Saisie rapide',t_amount:'Montant',t_logspend:'Ajouter dépense',t_nextup:'🔔 À venir',t_run:'📅 Jusqu’à la paie',t_nopay:'Ajoutez un salaire dans Plus → Revenus',t_nobills:'Aucune facture — ajoutez-en une dans l’onglet Factures. 🎉',t_moredays:'…et {n} jours de plus à {d}/jour',l_title:'Dépenses',l_sub:'Tout ce que vous avez noté.',l_week:'Cette semaine',l_month:'Ce mois',l_empty:'Rien noté. Touchez ⚡ pour ajouter.',b_title:'Factures',b_sub:'Les plus proches d’abord. Cochez-les.',b_add:'+ Ajouter facture',f_name:'Nom',f_amount:'Montant',f_repeats:'Répète',f_day:'Jour / date',f_first:'Première échéance (AAAA-MM-JJ)',f_addbill:'Ajouter',b_empty:'Aucune facture. Ajoutez la première 👇',fr_once:'Une seule fois',fr_weekly:'Chaque semaine',fr_biweekly:'Toutes les 2 semaines',fr_semimonthly:'2 fois par mois',fr_monthly:'Chaque mois',fr_everyN:'Tous quelques mois',f_everyn:'Tous combien de mois ?',g_title:'Objectifs et Dettes',g_sub:'Épargnez. Réduisez vos dettes.',g_sav:'🎯 Épargne',g_debt:'📉 Dettes',g_addsav:'+ Objectif d’épargne',f_target:'Cible',f_addgoal:'Ajouter',g_adddebt:'+ Dette',f_balance:'Solde',f_minpay:'Min. à payer',f_adddebt2:'Ajouter dette',g_nosav:'Aucun objectif.',g_nodebt:'Aucune dette. Bravo ! 🎉',m_title:'Plus',m_sub:'Tout le reste, bien rangé.',m_moneyin:'Revenus',m_env:'Enveloppes',m_cal:'Calendrier',m_brain:'Vide-tête',m_settings:'Réglages',m_today:"Aujourd'hui",mi_title:'Revenus',mi_sub:'Salaires et revenus.',mi_add:'+ Salaire',f_freq:'Fréquence',f_nextpay:'Prochaine paie (AAAA-MM-JJ)',f_addpay:'Ajouter',mi_empty:'Aucun salaire — nécessaire pour le calcul.',pf_weekly:'Hebdo',pf_biweekly:'Toutes les 2 semaines',pf_semimonthly:'2 fois par mois',pf_monthly:'Mensuel',e_title:'Enveloppes',e_sub:'Donnez un rôle à votre argent. Sans culpabilité.',e_empty:'Aucune enveloppe.',f_limit:'Limite mensuelle',f_addenv:'Ajouter',c_tap:'Touchez un jour pour voir.',c_pick:'Choisissez un jour',c_nothing:'Rien ce jour-là.',br_title:'Vide-tête',br_sub:'Ni montants, ni dates. Videz votre tête.',br_ph:'Écrivez ce qui vous trotte, Ajouter…',br_add:'Ajouter',br_empty:'Tête vide, tête heureuse. 🧠✨',s_theme:'Thème couleur',s_lang:'Langue',s_langnote:'Écrans principaux traduits. Quelques aides restent en anglais.',s_profile:'Profil',s_name:'Votre nom',s_ptitle:'Titre du plan',s_currency:'Devise',s_buffer:'Coussin de sécurité',s_save:'Enregistrer',s_cats:'Catégories',s_catsub:'Ajoutez vos rubriques — elles apparaîtront à la saisie.',s_newcat:'Nouvelle catégorie',o_tour_t:'L’argent,<br>en toute sérénité',o_tour_p:'Un chiffre dit ce que vous pouvez dépenser.<br>Sans tableur. Sans banque. Sans culpabilité.',o_tour:'Visite guidée',o_skip:'Passer — configurer',o_ex_t:'Essayez avec<br>des chiffres fictifs',o_ex_p:'Explorez sans risque — rien n’est réel.<br>Prêt ? On mettra les vôtres.',o_explore:'Explorer la démo',o_setup:'Configurer',o_s1t:'Étape 1 sur 4',o_s1p:'Votre nom<br>et votre plan ?',o_name:'Votre nom',o_ptitle:'Titre du plan',o_continue:'Continuer',o_s2t:'Étape 2 sur 4',o_s2p:'Devise et coussin de sécurité.',o_currency:'Devise',o_buffer:'Coussin',o_s3t:'Étape 3 sur 4',o_s3p:'Solde <b>actuel</b> du compte<br>et prochaine paie ?',o_balance:'Solde actuel',o_payamt:'Montant paie',o_nextpay:'Prochaine paie (AAAA-MM-JJ)',o_s4t:'Étape 4 sur 4',o_s4p:'Ajoutez la plus grosse facture.<br>Le reste, dedans.',o_billname:'Nom facture',o_billamt:'Montant',o_billday:'Jour du mois',o_start:'C’est parti ! 🎉',o_skipthis:'Passer'},
+de:{nav_today:'Heute',nav_log:'Ausgaben',nav_bills:'Rechnungen',nav_goals:'Ziele',nav_more:'Mehr',t_safe:'Sicher zum Ausgeben',t_how:'Wie wird das berechnet?',t_quick:'⚡ Schnell erfassen',t_amount:'Betrag',t_logspend:'Ausgabe speichern',t_nextup:'🔔 Als Nächstes',t_run:'📅 Bis zum Zahltag',t_nopay:'Gehalt unter Mehr → Einnahmen hinzufügen',t_nobills:'Keine Rechnungen — füge eine im Reiter Rechnungen hinzu. 🎉',t_moredays:'…und {n} weitere Tage mit {d}/Tag',l_title:'Ausgaben',l_sub:'Alles, was du erfasst hast.',l_week:'Diese Woche',l_month:'Dieser Monat',l_empty:'Noch nichts. Tippe auf ⚡.',b_title:'Rechnungen',b_sub:'Fälligste zuerst. Abhaken.',b_add:'+ Rechnung',f_name:'Name',f_amount:'Betrag',f_repeats:'Wiederholt',f_day:'Tag / Datum',f_first:'Erste Fälligkeit (JJJJ-MM-TT)',f_addbill:'Hinzufügen',b_empty:'Keine Rechnungen. Füge die erste hinzu 👇',fr_once:'Einmalig',fr_weekly:'Wöchentlich',fr_biweekly:'Alle 2 Wochen',fr_semimonthly:'2× im Monat',fr_monthly:'Monatlich',fr_everyN:'Alle paar Monate',f_everyn:'Alle wie viele Monate?',g_title:'Ziele & Schulden',g_sub:'Sparen. Schulden abbauen.',g_sav:'🎯 Sparen',g_debt:'📉 Schulden',g_addsav:'+ Sparziel',f_target:'Ziel',f_addgoal:'Hinzufügen',g_adddebt:'+ Schuld',f_balance:'Stand',f_minpay:'Mindestrate',f_adddebt2:'Hinzufügen',g_nosav:'Keine Sparziele.',g_nodebt:'Keine Schulden. Stark! 🎉',m_title:'Mehr',m_sub:'Alles andere, gut verstaut.',m_moneyin:'Einnahmen',m_env:'Umschläge',m_cal:'Kalender',m_brain:'Kopf leeren',m_settings:'Einstellungen',m_today:'Heute',mi_title:'Einnahmen',mi_sub:'Gehälter & Einnahmen.',mi_add:'+ Gehalt',f_freq:'Häufigkeit',f_nextpay:'Nächster Zahltag (JJJJ-MM-TT)',f_addpay:'Hinzufügen',mi_empty:'Kein Gehalt — nötig für die Berechnung.',pf_weekly:'Wöchentlich',pf_biweekly:'Alle 2 Wochen',pf_semimonthly:'2× im Monat',pf_monthly:'Monatlich',e_title:'Umschläge',e_sub:'Gib deinem Geld einen Job. Kein schlechtes Gewissen.',e_empty:'Keine Umschläge.',f_limit:'Monatslimit',f_addenv:'Hinzufügen',c_tap:'Tag antippen für Details.',c_pick:'Tag wählen',c_nothing:'Nichts an diesem Tag.',br_title:'Kopf leeren',br_sub:'Keine Beträge. Keine Daten. Raus aus dem Kopf.',br_ph:'Schreib auf, was dich beschäftigt…',br_add:'Hinzufügen',br_empty:'Leerer Kopf, glücklicher Kopf. 🧠✨',s_theme:'Farbthema',s_lang:'Sprache',s_langnote:'Hauptansichten übersetzt. Manche Hilfen bleiben englisch.',s_profile:'Profil',s_name:'Dein Name',s_ptitle:'Plantitel',s_currency:'Währung',s_buffer:'Sicherheitspuffer',s_save:'Speichern',s_cats:'Kategorien',s_catsub:'Eigene Rubriken hinzufügen — sie erscheinen beim Erfassen.',s_newcat:'Neue Kategorie',o_tour_t:'Geld,<br>ganz entspannt',o_tour_p:'Eine Zahl sagt, was du ausgeben kannst.<br>Keine Tabellen. Keine Bank. Kein schlechtes Gewissen.',o_tour:'Rundgang',o_skip:'Überspringen',o_ex_t:'Mit<br>Beispielzahlen testen',o_ex_p:'Gefahrlos stöbern — nichts ist echt.<br>Bereit? Dann nehmen wir deine.',o_explore:'Demo erkunden',o_setup:'Meins einrichten',o_s1t:'Schritt 1 von 4',o_s1p:'Dein Name<br>und dein Geldplan?',o_name:'Dein Name',o_ptitle:'Plantitel',o_continue:'Weiter',o_s2t:'Schritt 2 von 4',o_s2p:'Währung & Sicherheitspuffer.',o_currency:'Währung',o_buffer:'Puffer',o_s3t:'Schritt 3 von 4',o_s3p:'Kontostand <b>jetzt</b><br>und nächster Zahltag?',o_balance:'Aktueller Stand',o_payamt:'Zahltag-Betrag',o_nextpay:'Nächster Zahltag (JJJJ-MM-TT)',o_s4t:'Schritt 4 von 4',o_s4p:'Größte Rechnung hinzufügen.<br>Rest folgt drinnen.',o_billname:'Rechnungsname',o_billamt:'Betrag',o_billday:'Tag im Monat',o_start:'Los geht’s! 🎉',o_skipthis:'Überspringen'},
+pt:{nav_today:'Hoje',nav_log:'Gastos',nav_bills:'Contas',nav_goals:'Metas',nav_more:'Mais',t_safe:'Seguro para gastar',t_how:'Como é calculado?',t_quick:'⚡ Registro rápido',t_amount:'Valor',t_logspend:'Registrar gasto',t_nextup:'🔔 A seguir',t_run:'📅 Até o pagamento',t_nopay:'Adicione um salário em Mais → Receitas',t_nobills:'Sem contas — adicione uma na aba Contas. 🎉',t_moredays:'…e mais {n} dias a {d}/dia',l_title:'Gastos',l_sub:'Tudo que você registrou.',l_week:'Esta semana',l_month:'Este mês',l_empty:'Nada ainda. Toque em ⚡.',b_title:'Contas',b_sub:'As próximas primeiro. Marque-as.',b_add:'+ Adicionar conta',f_name:'Nome',f_amount:'Valor',f_repeats:'Repete',f_day:'Dia / data',f_first:'Primeiro vencimento (AAAA-MM-DD)',f_addbill:'Adicionar',b_empty:'Sem contas. Adicione a primeira 👇',fr_once:'Só uma vez',fr_weekly:'Toda semana',fr_biweekly:'A cada 2 semanas',fr_semimonthly:'2× por mês',fr_monthly:'Todo mês',fr_everyN:'A cada poucos meses',f_everyn:'A cada quantos meses?',g_title:'Metas e Dívidas',g_sub:'Pouve para seus sonhos. Quite dívidas.',g_sav:'🎯 Poupança',g_debt:'📉 Dívidas',g_addsav:'+ Meta',f_target:'Meta',f_addgoal:'Adicionar',g_adddebt:'+ Dívida',f_balance:'Saldo',f_minpay:'Mínimo',f_adddebt2:'Adicionar',g_nosav:'Sem metas.',g_nodebt:'Sem dívidas. Demais! 🎉',m_title:'Mais',m_sub:'O resto, bem guardado.',m_moneyin:'Receitas',m_env:'Envelopes',m_cal:'Calendário',m_brain:'Descarrego',m_settings:'Ajustes',m_today:'Hoje',mi_title:'Receitas',mi_sub:'Salários e receitas.',mi_add:'+ Salário',f_freq:'Frequência',f_nextpay:'Próximo pagamento (AAAA-MM-DD)',f_addpay:'Adicionar',mi_empty:'Sem salário — necessário para o cálculo.',pf_weekly:'Semanal',pf_biweekly:'A cada 2 semanas',pf_semimonthly:'2× por mês',pf_monthly:'Mensal',e_title:'Envelopes',e_sub:'Dê um trabalho ao seu dinheiro. Sem culpa.',e_empty:'Sem envelopes.',f_limit:'Limite mensal',f_addenv:'Adicionar',c_tap:'Toque num dia para ver.',c_pick:'Escolha um dia',c_nothing:'Nada neste dia.',br_title:'Descarrego mental',br_sub:'Sem valores. Sem datas. Tire da cabeça.',br_ph:'Escreva o que está na mente…',br_add:'Adicionar',br_empty:'Cabeça vazia, feliz. 🧠✨',s_theme:'Tema de cor',s_lang:'Idioma',s_langnote:'Telas principais traduzidas. Alguma ajuda segue em inglês.',s_profile:'Perfil',s_name:'Seu nome',s_ptitle:'Título do plano',s_currency:'Moeda',s_buffer:'Reserva de segurança',s_save:'Salvar',s_cats:'Categorias',s_catsub:'Adicione seus títulos — aparecem ao registrar.',s_newcat:'Nova categoria',o_tour_t:'Dinheiro com<br>tranquilidade',o_tour_p:'Um número diz o que dá para gastar.<br>Sem planilhas. Sem banco. Sem culpa.',o_tour:'Tour',o_skip:'Pular — configurar',o_ex_t:'Teste com<br>números de exemplo',o_ex_p:'Explore sem medo — nada é real.<br>Pronto? Usaremos os seus.',o_explore:'Explorar demo',o_setup:'Configurar',o_s1t:'Passo 1 de 4',o_s1p:'Seu nome<br>e seu plano?',o_name:'Seu nome',o_ptitle:'Título do plano',o_continue:'Continuar',o_s2t:'Passo 2 de 4',o_s2p:'Moeda e reserva de segurança.',o_currency:'Moeda',o_buffer:'Reserva',o_s3t:'Passo 3 de 4',o_s3p:'Saldo <b>agora</b> na conta<br>e próximo pagamento?',o_balance:'Saldo atual',o_payamt:'Valor do pagamento',o_nextpay:'Próximo pagamento (AAAA-MM-DD)',o_s4t:'Passo 4 de 4',o_s4p:'Adicione a maior conta.<br>O resto, dentro.',o_billname:'Nome da conta',o_billamt:'Valor',o_billday:'Dia do mês',o_start:'Começar! 🎉',o_skipthis:'Pular'},
+it:{nav_today:'Oggi',nav_log:'Spese',nav_bills:'Bollette',nav_goals:'Obiettivi',nav_more:'Altro',t_safe:'Sicuro da spendere',t_how:'Come viene calcolato?',t_quick:'⚡ Registrazione rapida',t_amount:'Importo',t_logspend:'Registra spesa',t_nextup:'🔔 In arrivo',t_run:'📅 Fino alla paga',t_nopay:'Aggiungi uno stipendio in Altro → Entrate',t_nobills:'Nessuna bolletta — aggiungine una nella scheda Bollette. 🎉',t_moredays:'…e altri {n} giorni a {d}/giorno',l_title:'Spese',l_sub:'Tutto ciò che hai registrato.',l_week:'Questa settimana',l_month:'Questo mese',l_empty:'Niente ancora. Tocca ⚡.',b_title:'Bollette',b_sub:'Le più vicine prima. Spuntale.',b_add:'+ Aggiungi bolletta',f_name:'Nome',f_amount:'Importo',f_repeats:'Ripete',f_day:'Giorno / data',f_first:'Prima scadenza (AAAA-MM-GG)',f_addbill:'Aggiungi',b_empty:'Nessuna bolletta. Aggiungi la prima 👇',fr_once:'Una volta sola',fr_weekly:'Ogni settimana',fr_biweekly:'Ogni 2 settimane',fr_semimonthly:'2 volte al mese',fr_monthly:'Ogni mese',fr_everyN:'Ogni pochi mesi',f_everyn:'Ogni quanti mesi?',g_title:'Obiettivi e Debiti',g_sub:'Risparmia. Riduci i debiti.',g_sav:'🎯 Risparmi',g_debt:'📉 Debiti',g_addsav:'+ Obiettivo',f_target:'Obiettivo',f_addgoal:'Aggiungi',g_adddebt:'+ Debito',f_balance:'Saldo',f_minpay:'Rata min.',f_adddebt2:'Aggiungi',g_nosav:'Nessun obiettivo.',g_nodebt:'Nessun debito. Grande! 🎉',m_title:'Altro',m_sub:'Tutto il resto, al suo posto.',m_moneyin:'Entrate',m_env:'Buste',m_cal:'Calendario',m_brain:'Scarico mentale',m_settings:'Impostazioni',m_today:'Oggi',mi_title:'Entrate',mi_sub:'Stipendi e entrate.',mi_add:'+ Stipendio',f_freq:'Frequenza',f_nextpay:'Prossima paga (AAAA-MM-GG)',f_addpay:'Aggiungi',mi_empty:'Nessuno stipendio — serve per il calcolo.',pf_weekly:'Settimanale',pf_biweekly:'Ogni 2 settimane',pf_semimonthly:'2 volte al mese',pf_monthly:'Mensile',e_title:'Buste',e_sub:'Dai un lavoro ai tuoi soldi. Senza sensi di colpa.',e_empty:'Nessuna busta.',f_limit:'Limite mensile',f_addenv:'Aggiungi',c_tap:'Tocca un giorno per i dettagli.',c_pick:'Scegli un giorno',c_nothing:'Niente in questo giorno.',br_title:'Scarico mentale',br_sub:'Senza importi. Senza date. Via dalla testa.',br_ph:'Scrivi cosa ti passa per la testa…',br_add:'Aggiungi',br_empty:'Testa vuota, felice. 🧠✨',s_theme:'Tema colore',s_lang:'Lingua',s_langnote:'Schermate principali tradotte. Qualche aiuto resta in inglese.',s_profile:'Profilo',s_name:'Il tuo nome',s_ptitle:'Titolo piano',s_currency:'Valuta',s_buffer:'Cuscinetto',s_save:'Salva',s_cats:'Categorie',s_catsub:'Aggiungi le tue voci — appariranno in registrazione.',s_newcat:'Nuova categoria',o_tour_t:'Soldi con<br>serenità',o_tour_p:'Un numero dice quanto puoi spendere.<br>Niente fogli. Niente banca. Niente sensi di colpa.',o_tour:'Tour',o_skip:'Salta — configura',o_ex_t:'Prova con<br>numeri di esempio',o_ex_p:'Esplora senza paura — niente è reale.<br>Pronto? Useremo i tuoi.',o_explore:'Esplora demo',o_setup:'Configura',o_s1t:'Passo 1 di 4',o_s1p:'Il tuo nome<br>e il tuo piano?',o_name:'Il tuo nome',o_ptitle:'Titolo piano',o_continue:'Continua',o_s2t:'Passo 2 di 4',o_s2p:'Valuta e cuscinetto di sicurezza.',o_currency:'Valuta',o_buffer:'Cuscinetto',o_s3t:'Passo 3 di 4',o_s3p:'Saldo <b>adesso</b> sul conto<br>e prossima paga?',o_balance:'Saldo attuale',o_payamt:'Importo paga',o_nextpay:'Prossima paga (AAAA-MM-GG)',o_s4t:'Passo 4 di 4',o_s4p:'Aggiungi la bolletta più grande.<br>Il resto, dentro.',o_billname:'Nome bolletta',o_billamt:'Importo',o_billday:'Giorno del mese',o_start:'Si comincia! 🎉',o_skipthis:'Salta'}};
+function tr(k){const L=(S&&S.profile&&S.profile.lang)||'en';return(T[L]&&T[L][k])||T.en[k]||k;}
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.innerHTML=t(el.getAttribute('data-i18n'));});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{el.placeholder=t(el.getAttribute('data-i18n-ph'));});
+  buildStaticSelects();
+  if(curScreen)show(curScreen,true);
+}
+/* ---------- themes ---------- */
+const THEMES=[['cream','Cream','#F7F2E9'],['blush','Blush','#FAF1EA'],['ocean','Ocean','#EEF4F6'],['lavender','Lavender','#F3EFF9'],['dark','Dark','#1e1c19'],['charcoal','Charcoal','#232323']];
+function renderThemeRow(){const r=$('themeRow');if(!r)return;
+  r.innerHTML=THEMES.map(([id,nm,c])=>`<button onclick="setTheme('${id}')" title="${nm}" style="width:46px;height:46px;border-radius:50%;background:${c};border:${(S.profile.theme||'cream')===id?'3px solid var(--sage-dark)':'2px solid var(--line)'};cursor:pointer;flex:none;padding:0;"></button>`).join('');}
+function setTheme(id){S.profile.theme=id;save();applyTheme();renderThemeRow();}
+/* ---------- custom categories ---------- */
+function allCats(){const s=[];const seen={};(S.customCats||[]).concat(CATS).forEach(c=>{if(c&&!seen[c]){seen[c]=1;s.push(c);}});return s;}
+function renderCats(){$('catList').innerHTML=(S.customCats||[]).length?(S.customCats||[]).map((c,i)=>
+  `<div class="kv"><span>🏷️ ${esc(c)}</span><button class="iconbtn" style="width:30px;height:30px;font-size:13px" onclick="delCat(${i})">✕</button></div>`).join('')
+  :'<p class="small">No custom categories yet.</p>';}
+function delCat(i){S.customCats.splice(i,1);save();renderCats();}
+/* ---------- boot ---------- */
+load();applyTheme();
+curScreen=S.onboarded?'today':'onboarding';
+if(!S.onboarded)renderOnb();
+applyLang();
+</script>
+</body>
+</html>

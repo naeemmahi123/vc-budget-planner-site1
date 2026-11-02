@@ -1,0 +1,9 @@
+{
+  "name": "VantaCraft ADHD Budget Planner",
+  "short_name": "VC Budget",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#F7F2E9",
+  "theme_color": "#75855F",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
